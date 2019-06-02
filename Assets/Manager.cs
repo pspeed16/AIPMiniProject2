@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class Manager : MonoBehaviour
 {
+    //Current generation
+    public int gen = 0;
     //Evolution settings.
     public int pop = 50;
     public int food = 100;
@@ -11,7 +13,7 @@ public class Manager : MonoBehaviour
     public float elitism = 0.2f;
     public float mutate = 0.1f;
     //Simulation settings.
-    public int genTime = 100;
+    public int genTime = 60;
     float t = 0;
     public float maxRot = 720.0f;
     public float maxVel = 2.0f;
@@ -47,18 +49,18 @@ public class Manager : MonoBehaviour
         {
             herbivores[i] = Instantiate(herbivore,
                 new Vector3(Random.Range(max.x, min.x), 0, Random.Range(max.y, min.y)),
-                Quaternion.Euler(0, Random.Range(0,360), 0));
+                Quaternion.Euler(0, Random.Range(0, 360.0f), 0));
             hScripts[i] = herbivores[i].GetComponent<Herbivore>();
             hScripts[i].wih = new float[5] { Random.Range(-1, 1),
-                Random.Range(-1, 1), Random.Range(-1, 1),
-                Random.Range(-1, 1), Random.Range(-1, 1) };
+                Random.Range(-1.0f, 1.0f), Random.Range(-1.0f, 1.0f),
+                Random.Range(-1.0f, 1.0f), Random.Range(-1.0f, 1.0f) };
             hScripts[i].who = new float[2][];
-            hScripts[i].who[0] = new float[5] { Random.Range(-1, 1),
-                Random.Range(-1, 1), Random.Range(-1, 1),
-                Random.Range(-1, 1), Random.Range(-1, 1) };
-            hScripts[i].who[1] = new float[5] { Random.Range(-1, 1),
-                Random.Range(-1, 1), Random.Range(-1, 1),
-                Random.Range(-1, 1), Random.Range(-1, 1) };
+            hScripts[i].who[0] = new float[5] { Random.Range(-1.0f, 1.0f),
+                Random.Range(-1.0f, 1.0f), Random.Range(-1.0f, 1.0f),
+                Random.Range(-1.0f, 1.0f), Random.Range(-1.0f, 1.0f) };
+            hScripts[i].who[1] = new float[5] { Random.Range(-1.0f, 1.0f),
+                Random.Range(-1.0f, 1.0f), Random.Range(-1.0f, 1.0f),
+                Random.Range(-1.0f, 1.0f), Random.Range(-1.0f, 1.0f) };
             hScripts[i].maxAccel = maxAccel;
             hScripts[i].maxRot = maxRot;
             hScripts[i].maxVel = maxVel;
@@ -69,7 +71,7 @@ public class Manager : MonoBehaviour
     void Update()
     {
         t += Time.deltaTime;
-        if (t >= genTime) Evolve();
+        if (t >= genTime && gen!=gens) Evolve();
     }
 
     void Evolve()
@@ -100,6 +102,7 @@ public class Manager : MonoBehaviour
             fitness[maxIndex] = 0;
             hScripts[maxIndex].elite = true;
             elites[i] = hScripts[maxIndex];
+            Debug.Log("Best: " + highest + "Average: " + avg);
         }
         for (int i = 0; i < pop; i++)
         {
@@ -121,7 +124,13 @@ public class Manager : MonoBehaviour
                 Quaternion newRot = Quaternion.Euler(0, Random.Range(0, 360), 0);
                 herbivores[i].transform.rotation = Quaternion.Euler(0, Random.Range(0, 360), 0);
             }
+            else
+            {
+                hScripts[i].elite = false;
+                hScripts[i].fitness = 0;
+            }
         }
+        gen++;
         t = 0;
     }
     float[] genWih(float[] p1, float[] p2)
