@@ -5,9 +5,14 @@ using UnityEngine;
 public class Herbivore : MonoBehaviour
 {
     public int fitness;
+    public float maxVel;
+    public float maxAccel;
+    public float maxRot;
+    public float[] wih;
+    public float[][] who;
+    public bool elite = false;
     private int nearestDeliciousVegetableIndex;
-    private float speed = 1.0f;
-    private float maxTurnSpeed = 1.0f;
+    private float speed = 0.0f;
     private float turnSpeed = 0.0f;
     private float turnAcc = 0.1f;
     private float dist;
@@ -72,12 +77,10 @@ public class Herbivore : MonoBehaviour
     {
         if (other.gameObject.tag == "deliciousVegetable")
         {
-            other.gameObject.GetComponent<DeliciousVegetableScript>().isEaten = true;
-            fitness++;
+            DeliciousVegetableScript s = other.gameObject.GetComponent<DeliciousVegetableScript>();
+            s.isEaten = true;
+            fitness+=s.energy;
+            s.energy = 0;
         }
-    }
-    void Evolve()
-    {
-
     }
 }
