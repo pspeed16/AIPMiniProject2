@@ -18,8 +18,8 @@ public class Manager : MonoBehaviour
     public float maxRot = 720.0f;
     public float maxVel = 2.0f;
     public float maxAccel = 1.0f;
-    private Vector2 min = new Vector2(-50, -50);
-    private Vector2 max = new Vector2(50, 50);
+    private Vector2 min = new Vector2(-25.0f, -25.0f);
+    private Vector2 max = new Vector2(25.0f, 25.0f);
     //Nodes
     public int inodes = 1;
     public int hnodes = 5;
@@ -79,9 +79,9 @@ public class Manager : MonoBehaviour
     void Evolve()
     {
         evolving = true;
-        int[] fitness = new int[hScripts.Length];
+        float[] fitness = new float[hScripts.Length];
         Herbivore[] elites = new Herbivore[Mathf.FloorToInt(pop * elitism)];
-        int highest = 0;
+        float highest = 0;
         float avg = 0;
         for (int i = 0; i < fitness.Length; i++)
         {
@@ -91,7 +91,7 @@ public class Manager : MonoBehaviour
         avg /= fitness.Length;
         for (int i = 0; i < Mathf.FloorToInt(pop * elitism); i++)
         {
-            int maxFit = 0;
+            float maxFit = 0;
             int maxIndex = 0;
             for (int j = 0; j < fitness.Length; j++)
             {

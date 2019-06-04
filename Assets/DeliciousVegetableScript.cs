@@ -13,7 +13,7 @@ public class DeliciousVegetableScript : MonoBehaviour
     }
     void respawn()
     {
-        Vector3 pos = new Vector3(Random.Range(-50, 50), 0, Random.Range(-50, 50));
+        Vector3 pos = new Vector3(Random.Range(-25.0f, 25.0f), 0, Random.Range(-25.0f, 25.0f));
         transform.position = pos;
         energy = 1;
         isEaten = false;

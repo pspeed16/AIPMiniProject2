@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Herbivore : MonoBehaviour
 {
-    public int fitness;
+    public float fitness;
     public float maxVel;
     public float maxAccel;
     public float maxRot;
@@ -71,7 +71,10 @@ public class Herbivore : MonoBehaviour
     {
         float[] result = new float[2];
         float[] h1 = new float[5];
-        for (int i = 0; i < h1.Length; i++) h1[i] = (float)System.Math.Tanh(wih[i] * -(Vector3.SignedAngle(direction, deliciousVegetableDirection, Vector3.up)/180.0f));
+        float foodDir = Mathf.Atan2(deliciousVegetableDirection.z, deliciousVegetableDirection.x) * Mathf.Rad2Deg;
+        if (Mathf.Abs(foodDir) < 180) foodDir += 360;
+        foodDir /= 180.0f;
+        for (int i = 0; i < h1.Length; i++) h1[i] = (float)System.Math.Tanh(wih[i] * Vector3.SignedAngle(direction, deliciousVegetableDirection, Vector3.up)/180.0f);
         for (int i = 0; i < h1.Length; i++) {
             result[0] += who[0][i] * h1[i];
             result[1] += who[1][i] * h1[i];
@@ -88,6 +91,13 @@ public class Herbivore : MonoBehaviour
             s.isEaten = true;
             fitness+=s.energy;
             s.energy = 0;
+        }
+    }
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.tag == "herbivore")
+        {
+            fitness -= 0.1f;
         }
     }
 }
