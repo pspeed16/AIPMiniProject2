@@ -32,6 +32,8 @@ public class Manager : MonoBehaviour
     public GameObject herbivore;
     private GameObject[] herbivores;
     private Herbivore[] hScripts;
+
+    private bool evolving = false;
     // Start is called before the first frame update
     void Start()
     {
@@ -51,7 +53,7 @@ public class Manager : MonoBehaviour
                 new Vector3(Random.Range(max.x, min.x), 0, Random.Range(max.y, min.y)),
                 Quaternion.Euler(0, Random.Range(0, 360.0f), 0));
             hScripts[i] = herbivores[i].GetComponent<Herbivore>();
-            hScripts[i].wih = new float[5] { Random.Range(-1, 1),
+            hScripts[i].wih = new float[5] { Random.Range(-1.0f, 1.0f),
                 Random.Range(-1.0f, 1.0f), Random.Range(-1.0f, 1.0f),
                 Random.Range(-1.0f, 1.0f), Random.Range(-1.0f, 1.0f) };
             hScripts[i].who = new float[2][];
@@ -71,14 +73,15 @@ public class Manager : MonoBehaviour
     void Update()
     {
         t += Time.deltaTime;
-        if (t >= genTime && gen!=gens) Evolve();
+        if (t >= genTime && gen != gens && !evolving) Evolve();
     }
 
     void Evolve()
     {
+        evolving = true;
         int[] fitness = new int[hScripts.Length];
         Herbivore[] elites = new Herbivore[Mathf.FloorToInt(pop * elitism)];
-        int highest=0;
+        int highest = 0;
         float avg = 0;
         for (int i = 0; i < fitness.Length; i++)
         {
@@ -102,8 +105,8 @@ public class Manager : MonoBehaviour
             fitness[maxIndex] = 0;
             hScripts[maxIndex].elite = true;
             elites[i] = hScripts[maxIndex];
-            Debug.Log("Best: " + highest + "Average: " + avg);
         }
+        int mutatedCounter = 0;
         for (int i = 0; i < pop; i++)
         {
             if (!hScripts[i].elite)
@@ -111,12 +114,33 @@ public class Manager : MonoBehaviour
                 //Parents. Random.Range has exclusive max with integers.
                 int[] pIndex = new int[2] { Random.Range(0, elites.Length), Random.Range(0, elites.Length) };
                 while (pIndex[0] == pIndex[1]) pIndex[1] = Random.Range(0, elites.Length);
-                float[] newWih = genWih(hScripts[pIndex[0]].wih, hScripts[pIndex[1]].wih);
-                float[][] newWho = genWho(hScripts[pIndex[0]].who, hScripts[pIndex[1]].who);
+                float[] newWih = genWih(elites[pIndex[0]].wih, elites[pIndex[1]].wih);
+                float[][] newWho = genWho(elites[pIndex[0]].who, elites[pIndex[1]].who);
                 hScripts[i].wih = newWih;
                 hScripts[i].who = newWho;
-                if (Random.Range(0.0f, 1.0f) > mutate)
+                hScripts[i].speed = 0;
+                hScripts[i].fitness = 0;
+                if (Random.Range(0.0f, 1.0f) < mutate)
                 {
+                    mutatedCounter++;
+                    int gene = Random.Range(0, 2);
+                    if (gene == 0)
+                    {
+                        hScripts[i].wih = new float[5] { Random.Range(-1.0f, 1.0f),
+                            Random.Range(-1.0f, 1.0f), Random.Range(-1.0f, 1.0f),
+                            Random.Range(-1.0f, 1.0f), Random.Range(-1.0f, 1.0f) };
+
+                    }
+                    else if (gene == 1)
+                    {
+                        hScripts[i].who[0] = new float[5] { Random.Range(-1.0f, 1.0f),
+                            Random.Range(-1.0f, 1.0f), Random.Range(-1.0f, 1.0f),
+                            Random.Range(-1.0f, 1.0f), Random.Range(-1.0f, 1.0f) };
+                        hScripts[i].who[1] = new float[5] { Random.Range(-1.0f, 1.0f),
+                            Random.Range(-1.0f, 1.0f), Random.Range(-1.0f, 1.0f),
+                            Random.Range(-1.0f, 1.0f), Random.Range(-1.0f, 1.0f) };
+
+                    }
                     //Implement mutation later
                 }
                 Vector3 newPos = new Vector3(Random.Range(max.x, min.x), 0, Random.Range(max.y, min.y));
@@ -128,16 +152,23 @@ public class Manager : MonoBehaviour
             {
                 hScripts[i].elite = false;
                 hScripts[i].fitness = 0;
+                hScripts[i].speed = 0;
+                Vector3 newPos = new Vector3(Random.Range(max.x, min.x), 0, Random.Range(max.y, min.y));
+                herbivores[i].transform.position = newPos;
+                Quaternion newRot = Quaternion.Euler(0, Random.Range(0, 360), 0);
+                herbivores[i].transform.rotation = Quaternion.Euler(0, Random.Range(0, 360), 0);
             }
         }
         gen++;
+        Debug.Log("Best: " + highest + ", Average: " + avg + ", Mutated: " + mutatedCounter + ", Generation: " + gen);
         t = 0;
+        evolving = false;
     }
     float[] genWih(float[] p1, float[] p2)
     {
         float[] result = new float[5];
         float crossWeight = Random.Range(0.0f, 1.0f);
-        for (int i = 0; i < result.Length; i++) result[i] = (crossWeight*p1[i])+((1-crossWeight)*p2[i]);
+        for (int i = 0; i < result.Length; i++) result[i] = (crossWeight * p1[i]) + ((1 - crossWeight) * p2[i]);
         return result;
     }
     float[][] genWho(float[][] p1, float[][] p2)

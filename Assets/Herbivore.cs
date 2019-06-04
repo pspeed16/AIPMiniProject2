@@ -12,14 +12,13 @@ public class Herbivore : MonoBehaviour
     public float[][] who;
     public bool elite = false;
     private int nearestDeliciousVegetableIndex;
-    private float speed = 0.0f;
-    private float turnSpeed = 0.0f;
-    private float turnAcc = 0.1f;
+    private float[] thoughts;
+    public float speed = 0.0f;
     private float dist;
     private float distToFood = Mathf.Infinity;
     private Vector3 pos;
     private Vector3 direction;
-    private Vector3 deliciousVegetableDirecton;
+    private Vector3 deliciousVegetableDirection;
     private GameObject mouth;
     private GameObject[] deliciousVegetables;
     private DeliciousVegetableScript[] deliciousVegetableScripts;
@@ -35,8 +34,7 @@ public class Herbivore : MonoBehaviour
             deliciousVegetableScripts[i] = deliciousVegetables[i].GetComponent<DeliciousVegetableScript>();
         }
         mouth = transform.GetChild(0).gameObject;
-        direction = mouth.transform.position - transform.position;
-        direction = direction.normalized;
+        direction = transform.forward;
         pos = transform.position;
     }
 
@@ -56,16 +54,14 @@ public class Herbivore : MonoBehaviour
                 }
             }
         }
-        deliciousVegetableDirecton = transform.position - deliciousVegetables[nearestDeliciousVegetableIndex].transform.position;
-        deliciousVegetableDirecton = deliciousVegetableDirecton.normalized;
-        
-        float[] thoughts = Think();
+        direction = transform.forward;
+        deliciousVegetableDirection =  deliciousVegetables[nearestDeliciousVegetableIndex].transform.position - transform.position;
+
+        thoughts = Think();
         transform.Rotate(new Vector3(0, 1, 0), (thoughts[1] * maxRot * Time.deltaTime));
-        direction = mouth.transform.position - transform.position;
-        direction = direction.normalized;
         speed += thoughts[0] * maxAccel * Time.deltaTime;
         if (speed < 0) speed = 0;
-        if (speed < maxVel) speed = maxVel;
+        if (speed > maxVel) speed = maxVel;
         pos = transform.position;
         pos += direction * speed * Time.deltaTime;
         pos.y = 0;
@@ -75,11 +71,13 @@ public class Herbivore : MonoBehaviour
     {
         float[] result = new float[2];
         float[] h1 = new float[5];
-        for (int i = 0; i < h1.Length; i++) h1[i] = (float)System.Math.Tanh(wih[i] * -Vector3.SignedAngle(direction,deliciousVegetableDirecton,Vector3.up));
+        for (int i = 0; i < h1.Length; i++) h1[i] = (float)System.Math.Tanh(wih[i] * -(Vector3.SignedAngle(direction, deliciousVegetableDirection, Vector3.up)/180.0f));
         for (int i = 0; i < h1.Length; i++) {
-            result[0] += (float)System.Math.Tanh(who[0][i] * h1[i]);
-            result[1] += (float)System.Math.Tanh(who[1][i] * h1[i]);
+            result[0] += who[0][i] * h1[i];
+            result[1] += who[1][i] * h1[i];
         }
+        result[0] = (float)System.Math.Tanh(result[0]);
+        result[1] = (float)System.Math.Tanh(result[1]);
         return result;
     }
     private void OnTriggerEnter(Collider other)
